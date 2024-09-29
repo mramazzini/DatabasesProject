@@ -135,7 +135,16 @@ def referentialIntegrityCheck(tables):
     return integrity_results ## returns dict full of keys with there RIC results
 
 
+# normalizationCheck(tables):
+#   normalization_results = {}
 
+#   for each table in tables:
+#      normalization_results[table["name"]] = "Normalized"
+
+#       if hasRepeatingGroups(table) or hasPartialDependencies(table) or hasTransitiveDependencies(table):
+#           normalization_results[table["name"]] = "Not Normalized"
+
+#   return normalization_results
 
 
 # Specify the path to your SQL file
