@@ -2,9 +2,9 @@ import psycopg2
 
 # Define the database connection parameters
 conn_params = {
-    'dbname': 'hw1',        # Your database name
+    'dbname': 'Master',        # Your database name
     'user': 'postgres',  # Your PostgreSQL username
-    'password': 'a',  # Your PostgreSQL password
+    'password': 'Ahmad2003!',  # Your PostgreSQL password
     'host': 'localhost',    # Host, usually 'localhost'
     'port': 5432            # Default PostgreSQL port
 }
@@ -109,17 +109,32 @@ def parseTxtFile(filename):
 def referentialIntegrityCheck(tables):
     pass
     # check for columns that use foriegn keys, and check if the column they reference exists
-    # for table in tables:
-    #     for column in table:
-    #         pass
-    #         if table[column]["key"] == "fk":
-    #             # check if the column exists
-    #             found = False
-    #             for tableToCheck in tables:
-    #                 for columnToCheck in tableToCheck:
-    #                     if columnToCheck == table[column]["column"]:
-    #                         found = True
-    #                         break
+
+    integrity_results = {}
+
+
+    for table in tables:
+        for column in table:
+            if column == 'name':
+                continue
+
+            if table[column]["key"] == "fk":
+                # check if the column exists
+                found = False
+
+                for tableToCheck in tables:
+                    if tableToCheck["name"] == table[column]["table"]:
+                            found = True
+                            integrity_results[table["name"]] =  "Y"
+                            break
+                    else:
+                        integrity_results[table["name"]] = "N"
+
+
+
+    return integrity_results ## returns dict full of keys with there RIC results
+
+
 
 
 
@@ -130,6 +145,7 @@ txtFilePaths = ['tc1.txt', 'tc2.txt', 'tc3.txt', 'tc4.txt', 'tc5.txt']
 # Call the function to execute the SQL file
 execute_sql_file(sqlFilePaths[0])
 tableData = parseTxtFile(txtFilePaths[0])
+
 for table in tableData:
     print(table)
 referentialIntegrityCheck(tableData)
