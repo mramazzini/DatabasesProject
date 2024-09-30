@@ -36,6 +36,7 @@ INSERT INTO T3 VALUES (553,400,85);
 
 
 /*T4* - violates 3nf k4->l4, l4->E/
+*/
 CREATE TABLE T4 (k4 int, l4 int, E int);
 
 

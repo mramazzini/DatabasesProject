@@ -2,9 +2,9 @@ import psycopg2
 
 # Define the database connection parameters
 conn_params = {
-    'dbname': 'Master',        # Your database name
+    'dbname': 'hw1',        # Your database name
     'user': 'postgres',  # Your PostgreSQL username
-    'password': 'Ahmad2003!',  # Your PostgreSQL password
+    'password': 'a',  # Your PostgreSQL password
     'host': 'localhost',    # Host, usually 'localhost'
     'port': 5432            # Default PostgreSQL port
 }
@@ -63,11 +63,10 @@ def parseTxtFile(filename):
             tableData = {}
             tableData["name"] = line.split('(')[0]
             columnStrings = line.split(tableData["name"])[1].replace('\n', '')[1:-1].split(',')
-            
+
             for columnString in columnStrings:
                 # This is a column with a foreign or primary key
                 col = {}
-
                 if columnString[len(columnString)-1] == ')':
                     columnString = columnString[:-1]
                     columnName = columnString.split('(')[0]
@@ -107,7 +106,6 @@ def parseTxtFile(filename):
     return tables
                     
 def referentialIntegrityCheck(tables):
-    pass
     # check for columns that use foriegn keys, and check if the column they reference exists
 
     integrity_results = {}
@@ -117,14 +115,10 @@ def referentialIntegrityCheck(tables):
         for column in table:
             if column == 'name':
                 continue
-
             if table[column]["key"] == "fk":
                 # check if the column exists
-                found = False
-
                 for tableToCheck in tables:
                     if tableToCheck["name"] == table[column]["table"]:
-                            found = True
                             integrity_results[table["name"]] =  "Y"
                             break
                     else:
@@ -134,6 +128,26 @@ def referentialIntegrityCheck(tables):
 
     return integrity_results ## returns dict full of keys with there RIC results
 
+def format_output(filename, lines):
+    # Print filename
+    print(f"{filename}")
+    print("-" * 41)
+    # Print header
+    print(f"{'Table':<10} {'referential':^15} {'normalized':^15}")
+    print(f"{'':<10} {'integrity':^15} {'':<15}")
+    print("-" * 41)
+    # Process table data
+    for line in lines:
+        if line.strip(): # Skip empty lines
+            parts = line.strip().split()
+            if len(parts) == 3:
+                print(f"{parts[0]:<10} {parts[1]:^15} {parts[2]:^15}")
+    # Process DB summary
+    db_ref_integrity = "Y" if all(line.split()[1] == "Y" for line in lines if line.strip()) else "N"
+    db_normalized = "Y" if all(line.split()[2] == "Y" for line in lines if line.strip()) else "N"
+    # print("-" * 41)
+    print(f"{'DB referential integrity:':<30} {db_ref_integrity}")
+    print(f"{'DB normalized:':<30} {db_normalized}")
 
 # normalizationCheck(tables):
 #   normalization_results = {}
@@ -151,10 +165,22 @@ def referentialIntegrityCheck(tables):
 sqlFilePaths = ['tc1.sql', 'tc2.sql', 'tc3.sql', 'tc4.sql', 'tc5.sql']
 txtFilePaths = ['tc1.txt', 'tc2.txt', 'tc3.txt', 'tc4.txt', 'tc5.txt']
 
-# Call the function to execute the SQL file
-execute_sql_file(sqlFilePaths[0])
-tableData = parseTxtFile(txtFilePaths[0])
 
-for table in tableData:
-    print(table)
-referentialIntegrityCheck(tableData)
+# Call the function to execute the SQL file
+
+for i in range(0,5):
+    execute_sql_file(sqlFilePaths[i])
+
+    tableData = parseTxtFile(txtFilePaths[i])
+
+    # for table in tableData:
+    #     print(table)
+
+    referentialIntegrityCheckResults = referentialIntegrityCheck(tableData)
+
+    lines = []
+
+    for table in referentialIntegrityCheckResults:
+        lines.append(f"{table} {referentialIntegrityCheckResults[table]} Y")
+
+    format_output(txtFilePaths[i],lines)
