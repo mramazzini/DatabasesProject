@@ -119,14 +119,66 @@ def referentialIntegrityCheck(tables):
                 # check if the column exists
                 for tableToCheck in tables:
                     if tableToCheck["name"] == table[column]["table"]:
-                            integrity_results[table["name"]] =  "Y"
-                            break
+                        integrity_results[table["name"]] =  "Y"
+                        break
                     else:
                         integrity_results[table["name"]] = "N"
+            integrity_results[table["name"]] = "Y"
 
 
 
     return integrity_results ## returns dict full of keys with there RIC results
+
+def hasRepeatingGroups(table):
+    # check for repeating groups
+    return False
+
+def hasPartialDependencies(table):
+    # There are no composite keys (as dictated in the assignment , thus this is always false)
+    return False
+
+def extractDependencies(tables):
+    dependencies = {}
+    for table in tables:
+        for column in table:
+            if column == 'name':
+                continue
+            if table[column]["key"] == "fk":
+                if table["name"] not in dependencies:
+                    dependencies[table["name"]] = {}
+                dependencies[table["name"]][column] = table[column]["table"]
+
+    return dependencies
+
+def hasTransitiveDependencies(dependencies, target_table):
+     def dfs(table, visited):
+        if table in visited:
+            return True  # Found a cycle, indicating a transitive dependency
+        visited.add(table)
+
+        if table in dependencies:
+            for foreign_key, dependent_table in dependencies[table].items():
+                if dfs(dependent_table, visited):
+                    return True
+
+        visited.remove(table)  # Remove from visited to allow for other paths
+        return False
+     visited = set()
+     return dfs(target_table, visited)
+    
+    
+
+
+def normalizationCheck(tables):
+    normalization_results = {}
+
+    for table in tables:
+        normalization_results[table["name"]] = "Y"
+        dependencies = extractDependencies(tables)
+
+        if hasRepeatingGroups(table) or hasPartialDependencies(table) or hasTransitiveDependencies(dependencies, table["name"]):
+            normalization_results[table["name"]] = "N"
+    return normalization_results
 
 def format_output(filename, lines):
     # Print filename
@@ -173,14 +225,14 @@ for i in range(0,5):
 
     tableData = parseTxtFile(txtFilePaths[i])
 
-    # for table in tableData:
-    #     print(table)
+    
 
     referentialIntegrityCheckResults = referentialIntegrityCheck(tableData)
+    normalizationCheckResults = normalizationCheck(tableData)
 
     lines = []
 
-    for table in referentialIntegrityCheckResults:
-        lines.append(f"{table} {referentialIntegrityCheckResults[table]} Y")
-
+    for table in tableData:
+        lines.append(f"{table["name"]} {referentialIntegrityCheckResults[table["name"]]} {normalizationCheckResults[table["name"]]}")
+    
     format_output(txtFilePaths[i],lines)
